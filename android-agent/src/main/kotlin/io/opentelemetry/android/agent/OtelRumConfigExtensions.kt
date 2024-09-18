@@ -5,7 +5,11 @@
 
 package io.opentelemetry.android.agent
 
+import android.app.Application
+import io.opentelemetry.android.OpenTelemetryRum
+import io.opentelemetry.android.OpenTelemetryRumBuilder
 import io.opentelemetry.android.config.OtelRumConfig
+import io.opentelemetry.android.features.diskbuffering.DiskBufferingConfiguration
 import io.opentelemetry.android.instrumentation.AndroidInstrumentationLoader
 import io.opentelemetry.android.instrumentation.activity.ActivityLifecycleInstrumentation
 import io.opentelemetry.android.instrumentation.anr.AnrInstrumentation
@@ -16,6 +20,7 @@ import io.opentelemetry.android.instrumentation.fragment.FragmentLifecycleInstru
 import io.opentelemetry.android.instrumentation.network.NetworkChangeInstrumentation
 import io.opentelemetry.android.instrumentation.slowrendering.SlowRenderingInstrumentation
 import io.opentelemetry.android.internal.services.network.data.CurrentNetwork
+import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor
 import java.time.Duration
@@ -77,4 +82,47 @@ fun OtelRumConfig.setSlowRenderingDetectionPollInterval(interval: Duration): Ote
     AndroidInstrumentationLoader.getInstrumentation(SlowRenderingInstrumentation::class.java)
         ?.setSlowRenderingDetectionPollInterval(interval)
     return this
+}
+
+object Defaults {
+    fun getDefaultRumBuilder(
+        application: Application,
+        config: OtelRumConfig = getDefaultConfig()
+    ): OpenTelemetryRumBuilder {
+        val builder = OpenTelemetryRumBuilder.create(application, config)
+
+        // Put additional agent-applied defaults to the builder here
+
+        return builder
+    }
+
+    fun getDefaultConfig(): OtelRumConfig {
+        val diskBufferingConfig =
+            DiskBufferingConfiguration.builder()
+                .setEnabled(true)
+                .setMaxCacheSize(10000000)
+                .build()
+
+        // Put additional agent-applied defaults in the config here
+
+        return OtelRumConfig().setDiskBufferingConfiguration(diskBufferingConfig)
+    }
+}
+
+fun createOpenTelemetryRum(
+    application: Application,
+    appName: String? = null,
+    appVersion: String? = null,
+    rumBuilder: OpenTelemetryRumBuilder = Defaults.getDefaultRumBuilder(application, Defaults.getDefaultConfig())
+): OpenTelemetryRum {
+    val resourceBuilder = OpenTelemetryRumBuilder.getDefaultResource()
+    appName?.apply {
+        resourceBuilder.put(AttributeKey.stringKey("service.name"), this)
+    }
+
+    appVersion?.apply {
+        resourceBuilder.put(AttributeKey.stringKey("service.version"), this)
+    }
+
+    return rumBuilder.setResource(resourceBuilder.build()).build()
 }

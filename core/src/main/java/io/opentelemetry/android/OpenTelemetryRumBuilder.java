@@ -7,6 +7,8 @@ package io.opentelemetry.android;
 
 import static java.util.Objects.requireNonNull;
 
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
+
 import android.app.Application;
 import android.util.Log;
 import io.opentelemetry.android.common.RumConstants;
@@ -24,6 +26,7 @@ import io.opentelemetry.android.internal.services.CacheStorage;
 import io.opentelemetry.android.internal.services.Preferences;
 import io.opentelemetry.android.internal.services.ServiceManager;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -43,6 +46,7 @@ import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.resources.ResourceBuilder;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -111,6 +115,10 @@ public final class OpenTelemetryRumBuilder {
     public OpenTelemetryRumBuilder setResource(Resource resource) {
         this.resource = resource;
         return this;
+    }
+
+    public static ResourceBuilder getDefaultResource() {
+        return AndroidResource.createDefault();
     }
 
     /**

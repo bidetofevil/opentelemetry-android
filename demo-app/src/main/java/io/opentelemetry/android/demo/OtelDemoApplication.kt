@@ -10,6 +10,8 @@ import android.app.Application
 import android.util.Log
 import io.opentelemetry.android.OpenTelemetryRum
 import io.opentelemetry.android.OpenTelemetryRumBuilder
+import io.opentelemetry.android.agent.Defaults
+import io.opentelemetry.android.agent.createOpenTelemetryRum
 import io.opentelemetry.android.agent.setSlowRenderingDetectionPollInterval
 import io.opentelemetry.android.config.OtelRumConfig
 import io.opentelemetry.android.features.diskbuffering.DiskBufferingConfiguration
@@ -31,33 +33,34 @@ class OtelDemoApplication : Application() {
         super.onCreate()
 
         Log.i(TAG, "Initializing the opentelemetry-android-agent")
-        val diskBufferingConfig =
-            DiskBufferingConfiguration.builder()
-                .setEnabled(true)
-                .setMaxCacheSize(10_000_000)
-                .build()
-        val config =
-            OtelRumConfig()
-                .setGlobalAttributes(Attributes.of(stringKey("toolkit"), "jetpack compose"))
-                .setDiskBufferingConfiguration(diskBufferingConfig)
+        val config = Defaults.getDefaultConfig().apply {
+            setGlobalAttributes(Attributes.of(stringKey("toolkit"), "jetpack compose"))
+        }
 
         // 10.0.2.2 is apparently a special binding to the host running the emulator
         val spansIngestUrl = "http://10.0.2.2:4318/v1/traces"
         val logsIngestUrl = "http://10.0.2.2:4318/v1/logs"
-        val otelRumBuilder: OpenTelemetryRumBuilder =
-            OpenTelemetryRum.builder(this, config)
-                .addSpanExporterCustomizer {
-                    OtlpHttpSpanExporter.builder()
-                        .setEndpoint(spansIngestUrl)
-                        .build()
-                }
-                .addLogRecordExporterCustomizer {
-                    OtlpHttpLogRecordExporter.builder()
-                        .setEndpoint(logsIngestUrl)
-                        .build()
-                }
+        val otelRumBuilder = Defaults.getDefaultRumBuilder(this, config).apply {
+            addSpanExporterCustomizer {
+                OtlpHttpSpanExporter.builder()
+                    .setEndpoint(spansIngestUrl)
+                    .build()
+            }
+
+            addLogRecordExporterCustomizer {
+                OtlpHttpLogRecordExporter.builder()
+                    .setEndpoint(logsIngestUrl)
+                    .build()
+            }
+        }
+
         try {
-            rum = otelRumBuilder.build()
+            rum = createOpenTelemetryRum(
+                application = this,
+                appName = "demo app",
+                appVersion = "1.0.0",
+                rumBuilder = otelRumBuilder
+            )
             Log.d(TAG, "RUM session started: " + rum!!.rumSessionId)
         } catch (e: Exception) {
             Log.e(TAG, "Oh no!", e)

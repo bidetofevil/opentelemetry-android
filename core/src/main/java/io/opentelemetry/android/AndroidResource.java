@@ -25,19 +25,23 @@ final class AndroidResource {
 
     static Resource createDefault(Application application) {
         String appName = readAppName(application);
-        ResourceBuilder resourceBuilder =
-                Resource.getDefault().toBuilder().put(SERVICE_NAME, appName);
+        ResourceBuilder resourceBuilder = createDefault();
+        resourceBuilder.put(SERVICE_NAME, appName);
+        return resourceBuilder.build();
+    }
+
+    static ResourceBuilder createDefault() {
+        ResourceBuilder resourceBuilder = Resource.getDefault().toBuilder();
 
         return resourceBuilder
-                .put(RUM_SDK_VERSION, BuildConfig.OTEL_ANDROID_VERSION)
-                .put(DEVICE_MODEL_NAME, Build.MODEL)
-                .put(DEVICE_MODEL_IDENTIFIER, Build.MODEL)
-                .put(DEVICE_MANUFACTURER, Build.MANUFACTURER)
-                .put(OS_NAME, "Android")
-                .put(OS_TYPE, "linux")
-                .put(OS_VERSION, Build.VERSION.RELEASE)
-                .put(OS_DESCRIPTION, getOSDescription())
-                .build();
+            .put(RUM_SDK_VERSION, BuildConfig.OTEL_ANDROID_VERSION)
+            .put(DEVICE_MODEL_NAME, Build.MODEL)
+            .put(DEVICE_MODEL_IDENTIFIER, Build.MODEL)
+            .put(DEVICE_MANUFACTURER, Build.MANUFACTURER)
+            .put(OS_NAME, "Android")
+            .put(OS_TYPE, "linux")
+            .put(OS_VERSION, Build.VERSION.RELEASE)
+            .put(OS_DESCRIPTION, getOSDescription());
     }
 
     private static String readAppName(Application application) {
