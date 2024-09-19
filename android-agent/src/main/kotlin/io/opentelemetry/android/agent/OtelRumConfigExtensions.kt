@@ -21,6 +21,7 @@ import io.opentelemetry.android.instrumentation.network.NetworkChangeInstrumenta
 import io.opentelemetry.android.instrumentation.slowrendering.SlowRenderingInstrumentation
 import io.opentelemetry.android.internal.services.network.data.CurrentNetwork
 import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor
 import java.time.Duration
@@ -106,6 +107,30 @@ object Defaults {
         // Put additional agent-applied defaults in the config here
 
         return OtelRumConfig().setDiskBufferingConfiguration(diskBufferingConfig)
+    }
+}
+
+class AndroidAgentBuilder(
+    var application: Application,
+    var appName: String? = null,
+    var appVersion: String? = null,
+    var globalAttributes: Attributes? = null
+) {
+    private val rumBuilder = Defaults.getDefaultRumBuilder(application)
+
+    fun buildRum(): OpenTelemetryRum = toRumBuilder().build()
+
+    fun toRumBuilder(): OpenTelemetryRumBuilder {
+        val resourceBuilder = OpenTelemetryRumBuilder.getDefaultResource()
+        appName?.apply {
+            resourceBuilder.put(AttributeKey.stringKey("service.name"), this)
+        }
+
+        appVersion?.apply {
+            resourceBuilder.put(AttributeKey.stringKey("service.version"), this)
+        }
+
+        return rumBuilder.setResource(resourceBuilder.build())
     }
 }
 
