@@ -17,10 +17,10 @@ import static org.mockito.Mockito.when;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import io.opentelemetry.android.test.common.FakeOpenTelemetry;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
@@ -28,14 +28,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RumFragmentLifecycleCallbacksTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    final FakeOpenTelemetry otelTesting = new FakeOpenTelemetry();
     private final VisibleScreenTracker visibleScreenTracker =
             Mockito.mock(VisibleScreenTracker.class);
     private Tracer tracer;
@@ -43,7 +42,7 @@ class RumFragmentLifecycleCallbacksTest {
 
     @BeforeEach
     void setup() {
-        tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        tracer = otelTesting.getTracer("testTracer");
         when(screenNameExtractor.extract(isA(Fragment.class))).thenReturn("Fragment");
     }
 

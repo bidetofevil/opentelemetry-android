@@ -16,7 +16,6 @@ import io.opentelemetry.android.session.SessionManager
 import io.opentelemetry.sdk.OpenTelemetrySdk
 
 class SdkPreconfiguredRumBuilder
-    @JvmOverloads
     internal constructor(
         private val application: Application,
         private val sdk: OpenTelemetrySdk,
@@ -55,7 +54,12 @@ class SdkPreconfiguredRumBuilder
             val openTelemetryRum = OpenTelemetryRumImpl(sdk, sessionManager)
 
             // Install instrumentations
-            val ctx = InstallationContext(application, openTelemetryRum.openTelemetry, sessionManager)
+            val ctx =
+                InstallationContext(
+                    application = application,
+                    openTelemetry = openTelemetryRum.openTelemetry,
+                    sessionManager = sessionManager,
+                )
             for (instrumentation in getEnabledInstrumentations()) {
                 instrumentation.install(ctx)
             }
