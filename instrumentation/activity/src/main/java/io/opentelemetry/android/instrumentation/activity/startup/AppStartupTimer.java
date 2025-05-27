@@ -12,13 +12,17 @@ import android.os.Handler;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Span;
+import io.embrace.opentelemetry.kotlin.tracing.SpanKind;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.common.RumConstants;
 import io.opentelemetry.android.internal.services.visiblescreen.activities.DefaultingActivityLifecycleCallbacks;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.common.Clock;
 import java.util.concurrent.TimeUnit;
 
+@OptIn(markerClass = ExperimentalApi.class)
 public class AppStartupTimer {
     // Maximum time from app start to creation of the UI. If this time is exceeded we will not
     // create the app start span. Long app startup could indicate that the app was really started in
@@ -45,10 +49,17 @@ public class AppStartupTimer {
             return overallAppStartSpan;
         }
         final Span appStart =
-                tracer.spanBuilder("AppStart")
-                        .setStartTimestamp(firstPossibleTimestamp, TimeUnit.NANOSECONDS)
-                        .setAttribute(RumConstants.START_TYPE_KEY, "cold")
-                        .startSpan();
+                tracer.createSpan(
+                        "AppStart",
+                        null,
+                        SpanKind.INTERNAL,
+                        firstPossibleTimestamp,
+                        attributeContainer -> {
+                            attributeContainer.setStringAttribute(
+                                    RumConstants.START_TYPE_KEY.getKey(), "cold");
+                            return null;
+                        });
+
         overallAppStartSpan = appStart;
         return appStart;
     }
@@ -94,7 +105,7 @@ public class AppStartupTimer {
         Span overallAppStartSpan = this.overallAppStartSpan;
         if (overallAppStartSpan != null && !uiInitTooLate && !isStartedFromBackground) {
             runCompletionCallback();
-            overallAppStartSpan.end(startupClock.now(), TimeUnit.NANOSECONDS);
+            overallAppStartSpan.end(startupClock.now());
         }
         clear();
     }

@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+@file:OptIn(ExperimentalApi::class)
+
 package io.opentelemetry.android.demo
 
+import android.os.Trace
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,12 +23,14 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
 import io.opentelemetry.api.metrics.LongCounter
-import io.opentelemetry.api.trace.SpanKind
 
 @Composable
-fun MainOtelButton(icon: Painter,
-                   clickCounter: LongCounter? = OtelDemoApplication.counter("logo.clicks")) {
+fun MainOtelButton(
+    icon: Painter,
+    clickCounter: LongCounter? = OtelDemoApplication.counter("logo.clicks")
+) {
     Row {
         Spacer(modifier = Modifier.height(5.dp))
         Button(
@@ -51,14 +56,21 @@ fun generateClickEvent(counter: LongCounter?) {
     val scope = "otel.demo.app"
     OtelDemoApplication.eventBuilder(scope, "logo.clicked")
         .emit()
+
     // For now, we also emit a span, so that we can see something in a UI
-    val tracer = OtelDemoApplication.tracer(scope)
+    OtelDemoApplication.kotlinTracer(scope)?.run {
+        try {
+            Trace.beginSection("otel-log-button-press")
+            createSpan(
+                name = "logo.clicked",
+                spanKind = io.embrace.opentelemetry.kotlin.tracing.SpanKind.INTERNAL
+            ).end()
+        } finally {
+            Trace.endSection()
+        }
+
+    }
+
     // And we also increment a counter, to test metrics
     counter?.add(1)
-    val span =
-        tracer
-            ?.spanBuilder("logo.clicked")
-            ?.setSpanKind(SpanKind.INTERNAL)
-            ?.startSpan()
-    span?.end()
 }

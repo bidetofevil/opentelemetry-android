@@ -10,22 +10,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import io.embrace.opentelemetry.kotlin.tracing.Span;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
+import io.opentelemetry.android.test.common.FakeOpenTelemetry;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 class AppStartupTimerTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    final FakeOpenTelemetry otelTesting = new FakeOpenTelemetry();
     private Tracer tracer;
 
     @BeforeEach
     void setup() {
-        tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        tracer = otelTesting.getTracer("testTracer");
     }
 
     @Test

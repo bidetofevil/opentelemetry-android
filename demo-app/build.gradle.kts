@@ -17,7 +17,6 @@ android {
     defaultConfig {
         applicationId = "io.opentelemetry.android.demo"
         minSdk = 21
-        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -63,6 +62,9 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.opentelemetry.api.incubator)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.opentelemetry.kotlin.api)
+    implementation(libs.opentelemetry.kotlin.api.ext)
+    implementation(libs.compat.kotlin.to.official)
 
     coreLibraryDesugaring(libs.desugarJdkLibs)
 

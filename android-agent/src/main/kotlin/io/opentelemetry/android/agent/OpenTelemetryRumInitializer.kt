@@ -6,6 +6,8 @@
 package io.opentelemetry.android.agent
 
 import android.app.Application
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.tracing.Tracer
 import io.opentelemetry.android.OpenTelemetryRum
 import io.opentelemetry.android.OpenTelemetryRumBuilder
 import io.opentelemetry.android.agent.connectivity.EndpointConnectivity
@@ -27,13 +29,13 @@ import io.opentelemetry.android.instrumentation.network.NetworkChangeInstrumenta
 import io.opentelemetry.android.instrumentation.slowrendering.SlowRenderingInstrumentation
 import io.opentelemetry.android.internal.services.Services
 import io.opentelemetry.android.session.SessionProvider
-import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor
 import java.time.Duration
 
+@OptIn(ExperimentalApi::class)
 object OpenTelemetryRumInitializer {
     /**
      * Opinionated [OpenTelemetryRum] initialization.

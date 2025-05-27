@@ -12,16 +12,19 @@ import static io.opentelemetry.android.common.RumConstants.START_TYPE_KEY;
 import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Span;
+import io.embrace.opentelemetry.kotlin.tracing.SpanContext;
+import io.embrace.opentelemetry.kotlin.tracing.SpanKind;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 import java.util.concurrent.atomic.AtomicReference;
 
+@OptIn(markerClass = ExperimentalApi.class)
 public class ActivityTracer {
     static final AttributeKey<String> ACTIVITY_NAME_KEY = AttributeKey.stringKey("activity.name");
 
@@ -90,7 +93,7 @@ public class ActivityTracer {
 
     private Span createAppStartSpan(String startType) {
         Span span = createSpan(APP_START_SPAN_NAME);
-        span.setAttribute(START_TYPE_KEY, startType);
+        span.setStringAttribute(START_TYPE_KEY.getKey(), startType);
         return span;
     }
 
@@ -99,15 +102,21 @@ public class ActivityTracer {
     }
 
     private Span createSpanWithParent(String spanName, @Nullable Span parentSpan) {
-        final SpanBuilder spanBuilder =
-                tracer.spanBuilder(spanName).setAttribute(ACTIVITY_NAME_KEY, activityName);
-        if (parentSpan != null) {
-            spanBuilder.setParent(parentSpan.storeInContext(Context.current()));
-        }
-        Span span = spanBuilder.startSpan();
+        final SpanContext parentContext = parentSpan == null ? null : parentSpan.getSpanContext();
+        final Span span =
+                tracer.createSpan(
+                        spanName,
+                        parentContext,
+                        SpanKind.INTERNAL,
+                        null,
+                        attributeContainer -> {
+                            attributeContainer.setStringAttribute(
+                                    ACTIVITY_NAME_KEY.getKey(), activityName);
+                            return null;
+                        });
         // do this after the span is started, so we can override the default screen.name set by the
         // RumAttributeAppender.
-        span.setAttribute(SCREEN_NAME_KEY, screenName);
+        span.setStringAttribute(SCREEN_NAME_KEY.getKey(), screenName);
         return span;
     }
 
@@ -141,16 +150,20 @@ public class ActivityTracer {
 
     static class Builder {
         private static final ActiveSpan INVALID_ACTIVE_SPAN = new ActiveSpan(() -> null);
-        private static final Tracer INVALID_TRACER = spanName -> null;
         private static final AppStartupTimer INVALID_TIMER = new AppStartupTimer();
         private final Activity activity;
         public String screenName = "unknown_screen";
         private AtomicReference<String> initialAppActivity = new AtomicReference<>();
-        private Tracer tracer = INVALID_TRACER;
+        private Tracer tracer;
         private AppStartupTimer appStartupTimer = INVALID_TIMER;
         private ActiveSpan activeSpan = INVALID_ACTIVE_SPAN;
 
+        private boolean tracerSet = false;
+
         public Builder(Activity activity) {
+            if (tracer == null) {
+                throw new IllegalStateException("tracer must be configured.");
+            }
             this.activity = activity;
         }
 
@@ -170,6 +183,7 @@ public class ActivityTracer {
         }
 
         public Builder setTracer(Tracer tracer) {
+            tracerSet = true;
             this.tracer = tracer;
             return this;
         }
@@ -197,7 +211,7 @@ public class ActivityTracer {
             if (activeSpan == INVALID_ACTIVE_SPAN) {
                 throw new IllegalStateException("activeSpan must be configured.");
             }
-            if (tracer == INVALID_TRACER) {
+            if (!tracerSet || tracer == null) {
                 throw new IllegalStateException("tracer must be configured.");
             }
             if (appStartupTimer == INVALID_TIMER) {
