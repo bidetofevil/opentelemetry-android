@@ -20,6 +20,9 @@ dependencies {
     implementation(libs.opentelemetry.instrumentation.api)
     implementation(libs.opentelemetry.semconv.incubating)
     implementation(libs.androidx.core)
+    api(libs.compat.kotlin.to.official)
+    api(libs.opentelemetry.kotlin.api)
+    api(libs.opentelemetry.kotlin.api.ext)
 
     testImplementation(libs.robolectric)
 }
