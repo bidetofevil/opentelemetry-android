@@ -14,20 +14,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import io.opentelemetry.android.test.common.FakeOpenTelemetry;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 public class ActivityTracerTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    final FakeOpenTelemetry otelTesting = new FakeOpenTelemetry();
 
     private Tracer tracer;
     private final VisibleScreenTracker visibleScreenTracker =
@@ -37,7 +36,7 @@ public class ActivityTracerTest {
 
     @BeforeEach
     public void setup() {
-        tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        tracer = otelTesting.getTracer("testTracer");
         activeSpan = new ActiveSpan(visibleScreenTracker::getPreviouslyVisibleScreen);
     }
 
