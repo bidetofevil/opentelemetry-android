@@ -17,6 +17,9 @@ dependencies {
     implementation(project(":common"))
     api(platform(libs.opentelemetry.platform.alpha))
     api(libs.opentelemetry.api)
+    api(libs.compat.kotlin.to.official)
+    api(libs.opentelemetry.kotlin.api)
+    api(libs.opentelemetry.kotlin.api.ext)
     implementation(libs.opentelemetry.sdk)
     implementation(libs.opentelemetry.instrumentation.api)
 }

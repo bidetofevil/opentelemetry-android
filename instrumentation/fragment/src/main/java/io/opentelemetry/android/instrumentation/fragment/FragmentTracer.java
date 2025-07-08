@@ -5,13 +5,18 @@
 
 package io.opentelemetry.android.instrumentation.fragment;
 
+import static io.opentelemetry.android.common.RumConstants.SCREEN_NAME_KEY;
+
+import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
-import io.opentelemetry.android.common.RumConstants;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Span;
+import io.embrace.opentelemetry.kotlin.tracing.SpanKind;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
 
+@OptIn(markerClass = ExperimentalApi.class)
 class FragmentTracer {
     static final AttributeKey<String> FRAGMENT_NAME_KEY = AttributeKey.stringKey("fragment.name");
 
@@ -41,13 +46,21 @@ class FragmentTracer {
     }
 
     private Span createSpan(String spanName) {
-        Span span =
-                tracer.spanBuilder(spanName)
-                        .setAttribute(FRAGMENT_NAME_KEY, fragmentName)
-                        .startSpan();
+
+        final Span span =
+                tracer.createSpan(
+                        spanName,
+                        null,
+                        SpanKind.INTERNAL,
+                        null,
+                        attributeContainer -> {
+                            attributeContainer.setStringAttribute(
+                                    FRAGMENT_NAME_KEY.getKey(), fragmentName);
+                            return null;
+                        });
         // do this after the span is started, so we can override the default screen.name set by the
         // RumAttributeAppender.
-        span.setAttribute(RumConstants.SCREEN_NAME_KEY, screenName);
+        span.setStringAttribute(SCREEN_NAME_KEY.getKey(), screenName);
         return span;
     }
 
@@ -71,17 +84,22 @@ class FragmentTracer {
 
     static class Builder {
         private static final ActiveSpan INVALID_ACTIVE_SPAN = new ActiveSpan(() -> null);
-        private static final Tracer INVALID_TRACER = spanName -> null;
         private final Fragment fragment;
         public String screenName = "";
-        private Tracer tracer = INVALID_TRACER;
+        private Tracer tracer;
         private ActiveSpan activeSpan = INVALID_ACTIVE_SPAN;
 
+        private boolean tracerSet = false;
+
         public Builder(Fragment fragment) {
+            if (tracer == null) {
+                throw new IllegalStateException("tracer must be configured.");
+            }
             this.fragment = fragment;
         }
 
         Builder setTracer(Tracer tracer) {
+            tracerSet = true;
             this.tracer = tracer;
             return this;
         }
@@ -104,7 +122,7 @@ class FragmentTracer {
             if (activeSpan == INVALID_ACTIVE_SPAN) {
                 throw new IllegalStateException("activeSpan must be configured.");
             }
-            if (tracer == INVALID_TRACER) {
+            if (!tracerSet || tracer == null) {
                 throw new IllegalStateException("tracer must be configured.");
             }
             return new FragmentTracer(this);

@@ -14,6 +14,9 @@ dependencies {
     implementation(project(":session"))
     implementation(project(":services"))
     implementation(libs.opentelemetry.exporter.otlp)
+    api(libs.compat.kotlin.to.official)
+    api(libs.opentelemetry.kotlin.api)
+    api(libs.opentelemetry.kotlin.api.ext)
 
     // Default instrumentations:
     api(project(":instrumentation:activity"))

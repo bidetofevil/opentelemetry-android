@@ -25,4 +25,5 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.opentelemetry.instrumentation.api)
     testImplementation(libs.robolectric)
+    testImplementation(project(":test-common"))
 }

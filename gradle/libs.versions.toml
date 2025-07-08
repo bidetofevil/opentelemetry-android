@@ -15,10 +15,15 @@ junitKtx = "1.2.1"
 autoService = "1.1.1"
 androidx-navigation = "2.7.7"
 compose = "1.5.4"
+opentelemetryKotlinApi = "0.1.1"
 
 [libraries]
 opentelemetry-platform-alpha = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha", version.ref = "opentelemetry-instrumentation-alpha" }
 opentelemetry-platform = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom" }
+compat-kotlin-to-official = { group = "io.embrace.opentelemetry.kotlin", name = "compat-kotlin-to-official", version.ref = "opentelemetryKotlinApi" }
+opentelemetry-kotlin-api = { group = "io.embrace.opentelemetry.kotlin", name = "opentelemetry-kotlin-api", version.ref = "opentelemetryKotlinApi" }
+opentelemetry-kotlin-api-ext = { group = "io.embrace.opentelemetry.kotlin", name = "opentelemetry-kotlin-api-ext", version.ref = "opentelemetryKotlinApi" }
+opentelemetry-kotlin-api-noop = { group = "io.embrace.opentelemetry.kotlin", name = "opentelemetry-kotlin-api-noop", version.ref = "opentelemetryKotlinApi" }
 androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "androidx-navigation"}
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "androidx-navigation" }
 androidx-core = "androidx.core:core:1.16.0"

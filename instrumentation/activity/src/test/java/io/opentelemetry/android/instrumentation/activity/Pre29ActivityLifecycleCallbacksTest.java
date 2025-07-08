@@ -16,22 +16,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import io.opentelemetry.android.test.common.FakeOpenTelemetry;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 class Pre29ActivityLifecycleCallbacksTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    final FakeOpenTelemetry otelTesting = new FakeOpenTelemetry();
     private ActivityTracerCache tracers;
 
     private VisibleScreenTracker visibleScreenTracker;
@@ -39,7 +38,7 @@ class Pre29ActivityLifecycleCallbacksTest {
     @BeforeEach
     void setup() {
         AppStartupTimer appStartupTimer = new AppStartupTimer();
-        Tracer tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        Tracer tracer = otelTesting.getTracer("testTracer");
         visibleScreenTracker = Mockito.mock(VisibleScreenTracker.class);
         ScreenNameExtractor extractor = mock(ScreenNameExtractor.class);
         when(extractor.extract(isA(Activity.class))).thenReturn("Activity");
