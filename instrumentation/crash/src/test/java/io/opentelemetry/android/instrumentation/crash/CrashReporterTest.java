@@ -5,6 +5,7 @@
 
 package io.opentelemetry.android.instrumentation.crash;
 
+import static io.opentelemetry.android.instrumentation.InstallationContextKt.createInstallationContext;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor.constant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,10 +63,11 @@ public class CrashReporterTest {
         CrashReporterInstrumentation instrumentation = new CrashReporterInstrumentation();
         instrumentation.addAttributesExtractor(constant(stringKey("test.key"), "abc"));
         InstallationContext ctx =
-                new InstallationContext(
+                createInstallationContext(
                         RuntimeEnvironment.getApplication(),
                         openTelemetrySdk,
                         mock(SessionProvider.class));
+
         instrumentation.install(ctx);
 
         String exceptionMessage = "boooom!";

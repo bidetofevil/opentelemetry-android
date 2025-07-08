@@ -16,6 +16,8 @@ android {
 dependencies {
     api(platform(libs.opentelemetry.platform.alpha))
     api(libs.opentelemetry.api)
+    api(libs.opentelemetry.kotlin)
+    api(libs.opentelemetry.kotlin.compat)
     implementation(libs.opentelemetry.sdk)
     implementation(libs.opentelemetry.instrumentation.api)
     implementation(libs.opentelemetry.semconv.incubating)
