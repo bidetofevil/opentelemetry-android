@@ -16,11 +16,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import io.embrace.opentelemetry.kotlin.testing.junit5.OpenTelemetryExtension;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 class Pre29ActivityLifecycleCallbacksTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    @RegisterExtension final OpenTelemetryExtension otelTesting = new OpenTelemetryExtension();
     private ActivityTracerCache tracers;
 
     private VisibleScreenTracker visibleScreenTracker;
@@ -39,7 +39,11 @@ class Pre29ActivityLifecycleCallbacksTest {
     @BeforeEach
     void setup() {
         AppStartupTimer appStartupTimer = new AppStartupTimer();
-        Tracer tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        Tracer tracer =
+                otelTesting
+                        .getOpenTelemetry()
+                        .getTracerProvider()
+                        .getTracer("testTracer", null, null, attributeContainer -> null);
         visibleScreenTracker = Mockito.mock(VisibleScreenTracker.class);
         ScreenNameExtractor extractor = mock(ScreenNameExtractor.class);
         when(extractor.extract(isA(Activity.class))).thenReturn("Activity");
@@ -114,7 +118,6 @@ class Pre29ActivityLifecycleCallbacksTest {
     private void startupAppAndClearSpans(Pre29ActivityCallbackTestHarness testHarness) {
         // make sure that the initial state has been set up & the application is started.
         testHarness.runAppStartupLifecycle(mock(Activity.class));
-        otelTesting.clearSpans();
     }
 
     @Test
