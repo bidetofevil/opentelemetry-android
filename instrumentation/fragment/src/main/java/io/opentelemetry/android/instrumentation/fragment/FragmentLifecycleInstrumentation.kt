@@ -8,14 +8,16 @@ package io.opentelemetry.android.instrumentation.fragment
 import android.app.Application.ActivityLifecycleCallbacks
 import android.os.Build
 import com.google.auto.service.AutoService
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.tracing.Tracer
 import io.opentelemetry.android.instrumentation.AndroidInstrumentation
 import io.opentelemetry.android.instrumentation.InstallationContext
 import io.opentelemetry.android.instrumentation.common.Constants.INSTRUMENTATION_SCOPE
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor
 import io.opentelemetry.android.internal.services.Services
 import io.opentelemetry.android.internal.services.visiblescreen.fragments.RumFragmentActivityRegisterer
-import io.opentelemetry.api.trace.Tracer
 
+@ExperimentalApi
 @AutoService(AndroidInstrumentation::class)
 class FragmentLifecycleInstrumentation : AndroidInstrumentation {
     private var screenNameExtractor = ScreenNameExtractor.DEFAULT
@@ -37,7 +39,7 @@ class FragmentLifecycleInstrumentation : AndroidInstrumentation {
 
     private fun buildFragmentRegisterer(ctx: InstallationContext): ActivityLifecycleCallbacks {
         val visibleScreenService = Services.get(ctx.application).visibleScreenTracker
-        val delegateTracer: Tracer = ctx.openTelemetry.getTracer(INSTRUMENTATION_SCOPE)
+        val delegateTracer: Tracer = ctx.openTelemetryKotlin.tracerProvider.getTracer(INSTRUMENTATION_SCOPE)
         val fragmentLifecycle =
             RumFragmentLifecycleCallbacks(
                 tracerCustomizer.invoke(delegateTracer),

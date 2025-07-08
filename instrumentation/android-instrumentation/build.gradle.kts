@@ -19,4 +19,6 @@ dependencies {
 
     api(platform(libs.opentelemetry.platform.alpha))
     api(libs.opentelemetry.api)
+    api(libs.opentelemetry.kotlin)
+    api(libs.opentelemetry.kotlin.compat)
 }

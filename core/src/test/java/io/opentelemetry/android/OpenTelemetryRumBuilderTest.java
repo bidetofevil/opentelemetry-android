@@ -6,6 +6,7 @@
 package io.opentelemetry.android;
 
 import static io.opentelemetry.android.common.RumConstants.SCREEN_NAME_KEY;
+import static io.opentelemetry.android.instrumentation.InstallationContextKt.createInstallationContext;
 import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.assertThat;
@@ -275,7 +276,7 @@ public class OpenTelemetryRumBuilderTest {
                         .build();
 
         InstallationContext expectedCtx =
-                new InstallationContext(application, rum.getOpenTelemetry(), sessionProvider);
+                createInstallationContext(application, rum.getOpenTelemetry(), sessionProvider);
         verify(localInstrumentation).install(eq(expectedCtx));
         verify(classpathInstrumentation).install(eq(expectedCtx));
     }
@@ -298,7 +299,7 @@ public class OpenTelemetryRumBuilderTest {
                         .build();
 
         InstallationContext expectedCtx =
-                new InstallationContext(application, rum.getOpenTelemetry(), sessionProvider);
+                createInstallationContext(application, rum.getOpenTelemetry(), sessionProvider);
         verify(localInstrumentation).install(eq(expectedCtx));
         verifyNoInteractions(classpathInstrumentation);
     }

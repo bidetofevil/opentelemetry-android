@@ -7,6 +7,8 @@ package io.opentelemetry.android.instrumentation.activity
 
 import android.os.Build
 import com.google.auto.service.AutoService
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.tracing.Tracer
 import io.opentelemetry.android.instrumentation.AndroidInstrumentation
 import io.opentelemetry.android.instrumentation.InstallationContext
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer
@@ -14,8 +16,8 @@ import io.opentelemetry.android.instrumentation.common.Constants.INSTRUMENTATION
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor
 import io.opentelemetry.android.internal.services.Services
 import io.opentelemetry.android.internal.services.visiblescreen.activities.DefaultingActivityLifecycleCallbacks
-import io.opentelemetry.api.trace.Tracer
 
+@OptIn(ExperimentalApi::class)
 @AutoService(AndroidInstrumentation::class)
 class ActivityLifecycleInstrumentation : AndroidInstrumentation {
     private val startupTimer: AppStartupTimer by lazy { AppStartupTimer() }
@@ -33,14 +35,14 @@ class ActivityLifecycleInstrumentation : AndroidInstrumentation {
     }
 
     override fun install(ctx: InstallationContext) {
-        startupTimer.start(ctx.openTelemetry.getTracer(INSTRUMENTATION_SCOPE))
+        startupTimer.start(ctx.openTelemetryKotlin.tracerProvider.getTracer(INSTRUMENTATION_SCOPE))
         ctx.application.registerActivityLifecycleCallbacks(startupTimer.createLifecycleCallback())
         ctx.application.registerActivityLifecycleCallbacks(buildActivityLifecycleTracer(ctx))
     }
 
     private fun buildActivityLifecycleTracer(ctx: InstallationContext): DefaultingActivityLifecycleCallbacks {
         val visibleScreenService = Services.get(ctx.application).visibleScreenTracker
-        val delegateTracer: Tracer = ctx.openTelemetry.getTracer(INSTRUMENTATION_SCOPE)
+        val delegateTracer: Tracer = ctx.openTelemetryKotlin.tracerProvider.getTracer(INSTRUMENTATION_SCOPE)
         val tracers =
             ActivityTracerCache(
                 tracerCustomizer.invoke(delegateTracer),
