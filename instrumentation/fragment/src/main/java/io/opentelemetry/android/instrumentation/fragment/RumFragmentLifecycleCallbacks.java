@@ -12,13 +12,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
-import io.opentelemetry.api.trace.Tracer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+@ExperimentalApi
 public class RumFragmentLifecycleCallbacks extends FragmentManager.FragmentLifecycleCallbacks {
     private final Map<String, FragmentTracer> tracersByFragmentClassName = new HashMap<>();
 
