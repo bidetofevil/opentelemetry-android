@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import io.embrace.opentelemetry.kotlin.OpenTelemetry;
 import io.embrace.opentelemetry.kotlin.testing.junit5.OpenTelemetryExtension;
 import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
@@ -39,15 +40,20 @@ class Pre29ActivityLifecycleCallbacksTest {
     @BeforeEach
     void setup() {
         AppStartupTimer appStartupTimer = new AppStartupTimer();
+        OpenTelemetry otel = otelTesting.getOpenTelemetry();
         Tracer tracer =
-                otelTesting
-                        .getOpenTelemetry()
-                        .getTracerProvider()
+                otel.getTracerProvider()
                         .getTracer("testTracer", null, null, attributeContainer -> null);
         visibleScreenTracker = Mockito.mock(VisibleScreenTracker.class);
         ScreenNameExtractor extractor = mock(ScreenNameExtractor.class);
         when(extractor.extract(isA(Activity.class))).thenReturn("Activity");
-        tracers = new ActivityTracerCache(tracer, visibleScreenTracker, appStartupTimer, extractor);
+        tracers =
+                new ActivityTracerCache(
+                        tracer,
+                        visibleScreenTracker,
+                        appStartupTimer,
+                        extractor,
+                        otel.getObjectCreator().getContext().root());
     }
 
     @Test
@@ -93,7 +99,7 @@ class Pre29ActivityLifecycleCallbacksTest {
 
         Activity activity = mock(Activity.class);
         testHarness.runActivityCreationLifecycle(activity);
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -131,7 +137,7 @@ class Pre29ActivityLifecycleCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityRestartedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -165,7 +171,7 @@ class Pre29ActivityLifecycleCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityResumedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -195,7 +201,7 @@ class Pre29ActivityLifecycleCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityDestroyedFromStoppedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -225,7 +231,7 @@ class Pre29ActivityLifecycleCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityDestroyedFromPausedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(2, spans.size());
 
         SpanData stoppedSpan = spans.get(0);
@@ -272,7 +278,7 @@ class Pre29ActivityLifecycleCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityStoppedFromRunningLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(2, spans.size());
 
         SpanData stoppedSpan = spans.get(0);
@@ -312,5 +318,11 @@ class Pre29ActivityLifecycleCallbacksTest {
         Optional<EventData> event =
                 events.stream().filter(e -> e.getName().equals(eventName)).findAny();
         assertTrue(event.isPresent(), "Event with name " + eventName + " not found");
+    }
+
+    private List<SpanData> getExpectedSpans() {
+        List<SpanData> spans = otelTesting.getSpans();
+        spans.remove(0);
+        return spans;
     }
 }

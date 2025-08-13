@@ -26,6 +26,6 @@ dependencies {
     implementation(libs.opentelemetry.sdk)
     implementation(libs.androidx.core)
     implementation(libs.opentelemetry.instrumentation.api)
-    testImplementation(libs.opentelemetry.kotlin.testing)
     testImplementation(libs.robolectric)
+    testImplementation(libs.opentelemetry.kotlin.testing)
 }

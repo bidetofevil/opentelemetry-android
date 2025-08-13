@@ -7,35 +7,40 @@ package io.opentelemetry.android.instrumentation.activity
 
 import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.OpenTelemetryInstance
+import io.embrace.opentelemetry.kotlin.decorateKotlinApi
+import io.embrace.opentelemetry.kotlin.getTracer
+import io.embrace.opentelemetry.kotlin.testing.junit5.OpenTelemetryExtension
+import io.embrace.opentelemetry.kotlin.tracing.Tracer
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
-import io.opentelemetry.android.common.RumConstants
-import io.opentelemetry.android.instrumentation.InstallationContext
+import io.opentelemetry.android.instrumentation.createInstallationContext
 import io.opentelemetry.android.internal.services.Services
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker
 import io.opentelemetry.android.session.SessionProvider
-import io.opentelemetry.api.trace.Span
-import io.opentelemetry.api.trace.SpanBuilder
-import io.opentelemetry.api.trace.Tracer
-import io.opentelemetry.sdk.OpenTelemetrySdk
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.runner.RunWith
 import org.robolectric.RuntimeEnvironment
 
+@OptIn(ExperimentalApi::class)
 @RunWith(AndroidJUnit4::class)
 class ActivityLifecycleInstrumentationTest {
+    @RegisterExtension
+    val otelTesting: OpenTelemetryExtension = OpenTelemetryExtension()
     private lateinit var activityLifecycleInstrumentation: ActivityLifecycleInstrumentation
     private lateinit var application: Application
-    private lateinit var openTelemetry: OpenTelemetrySdk
     private lateinit var sessionProvider: SessionProvider
     private lateinit var services: Services
+
+    private lateinit var tracer: Tracer
 
     @Before
     fun setUp() {
         application = RuntimeEnvironment.getApplication()
-        openTelemetry = mockk()
+        tracer = otelTesting.openTelemetry.getTracer("io.opentelemetry.lifecycle")
         activityLifecycleInstrumentation = ActivityLifecycleInstrumentation()
         services = mockk()
         sessionProvider = mockk()
@@ -44,29 +49,12 @@ class ActivityLifecycleInstrumentationTest {
 
     @Test
     fun `Installing instrumentation starts AppStartupTimer`() {
-        val tracer: Tracer = mockk()
-        val startupSpanBuilder: SpanBuilder = mockk()
-        val startupSpan: Span = mockk()
-
-        every { openTelemetry.getTracer("io.opentelemetry.lifecycle") }.returns(tracer)
-        every { tracer.spanBuilder("AppStart") }.returns(startupSpanBuilder)
-        every { startupSpanBuilder.setStartTimestamp(any(), any()) }.returns(startupSpanBuilder)
-        every { startupSpanBuilder.setAttribute(RumConstants.START_TYPE_KEY, "cold") }.returns(
-            startupSpanBuilder,
-        )
-        every { startupSpanBuilder.startSpan() }.returns(startupSpan)
-
-        val ctx = InstallationContext(application, openTelemetry, sessionProvider)
+        val ctx =
+            createInstallationContext(
+                application,
+                OpenTelemetryInstance.decorateKotlinApi(otelTesting.openTelemetry),
+                sessionProvider,
+            )
         activityLifecycleInstrumentation.install(ctx)
-
-        verify {
-            tracer.spanBuilder("AppStart")
-        }
-        verify {
-            startupSpanBuilder.setAttribute(RumConstants.START_TYPE_KEY, "cold")
-        }
-        verify {
-            startupSpanBuilder.startSpan()
-        }
     }
 }

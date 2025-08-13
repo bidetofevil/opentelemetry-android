@@ -8,6 +8,7 @@ package io.opentelemetry.android.instrumentation.activity
 import android.os.Build
 import com.google.auto.service.AutoService
 import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.getTracer
 import io.embrace.opentelemetry.kotlin.tracing.Tracer
 import io.opentelemetry.android.instrumentation.AndroidInstrumentation
 import io.opentelemetry.android.instrumentation.InstallationContext
@@ -35,7 +36,7 @@ class ActivityLifecycleInstrumentation : AndroidInstrumentation {
     }
 
     override fun install(ctx: InstallationContext) {
-        startupTimer.start(ctx.openTelemetryKotlin.tracerProvider.getTracer(INSTRUMENTATION_SCOPE))
+        startupTimer.start(ctx.openTelemetryKotlin.getTracer(INSTRUMENTATION_SCOPE))
         ctx.application.registerActivityLifecycleCallbacks(startupTimer.createLifecycleCallback())
         ctx.application.registerActivityLifecycleCallbacks(buildActivityLifecycleTracer(ctx))
     }
@@ -49,6 +50,7 @@ class ActivityLifecycleInstrumentation : AndroidInstrumentation {
                 visibleScreenService,
                 startupTimer,
                 screenNameExtractor,
+                ctx.rootContext,
             )
         return if (Build.VERSION.SDK_INT < 29) {
             Pre29ActivityCallbacks(tracers)

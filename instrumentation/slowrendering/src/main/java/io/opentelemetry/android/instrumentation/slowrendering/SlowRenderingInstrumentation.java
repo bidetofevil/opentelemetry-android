@@ -8,13 +8,17 @@ package io.opentelemetry.android.instrumentation.slowrendering;
 import android.os.Build;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import com.google.auto.service.AutoService;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.common.RumConstants;
 import io.opentelemetry.android.instrumentation.AndroidInstrumentation;
 import io.opentelemetry.android.instrumentation.InstallationContext;
 import java.time.Duration;
 
 /** Entrypoint for installing the slow rendering detection instrumentation. */
+@OptIn(markerClass = ExperimentalApi.class)
 @AutoService(AndroidInstrumentation.class)
 public final class SlowRenderingInstrumentation implements AndroidInstrumentation {
 
@@ -49,10 +53,16 @@ public final class SlowRenderingInstrumentation implements AndroidInstrumentatio
             return;
         }
 
+        Tracer tracer =
+                ctx.getOpenTelemetryKotlin()
+                        .getTracerProvider()
+                        .getTracer(
+                                "io.opentelemetry.slow-rendering",
+                                null,
+                                null,
+                                attributeContainer -> null);
         SlowRenderListener detector =
-                new SlowRenderListener(
-                        ctx.getOpenTelemetry().getTracer("io.opentelemetry.slow-rendering"),
-                        slowRenderingDetectionPollInterval);
+                new SlowRenderListener(tracer, slowRenderingDetectionPollInterval);
 
         ctx.getApplication().registerActivityLifecycleCallbacks(detector);
         detector.start();

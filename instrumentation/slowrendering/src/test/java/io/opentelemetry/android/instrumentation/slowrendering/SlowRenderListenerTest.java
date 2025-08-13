@@ -19,14 +19,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.ComponentName;
 import android.os.Build;
 import android.os.Handler;
 import android.view.FrameMetrics;
+import io.embrace.opentelemetry.kotlin.testing.junit4.OpenTelemetryRule;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit4.OpenTelemetryRule;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.time.Duration;
 import java.util.List;
@@ -51,13 +50,10 @@ import org.robolectric.annotation.Config;
 @Config(sdk = Build.VERSION_CODES.N)
 public class SlowRenderListenerTest {
 
-    private static final AttributeKey<Long> COUNT_KEY = AttributeKey.longKey("count");
-
-    @Rule public OpenTelemetryRule otelTesting = OpenTelemetryRule.create();
+    @Rule public OpenTelemetryRule otelTesting = new OpenTelemetryRule();
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     @Mock Handler frameMetricsHandler;
-    @Mock Application application;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     Activity activity;
@@ -69,7 +65,11 @@ public class SlowRenderListenerTest {
 
     @Before
     public void setup() {
-        tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        tracer =
+                otelTesting
+                        .getOpenTelemetry()
+                        .getTracerProvider()
+                        .getTracer("testTracer", null, null, attributeContainer -> null);
         ComponentName componentName = new ComponentName("io.otel", "Komponent");
         when(activity.getComponentName()).thenReturn(componentName);
     }
@@ -185,7 +185,7 @@ public class SlowRenderListenerTest {
                                 assertThat(span)
                                         .hasName("slowRenders")
                                         .endsAt(span.getStartEpochNanos())
-                                        .hasAttribute(COUNT_KEY, 3L)
+                                        .hasAttribute(AttributeKey.longKey("count"), 3L)
                                         .hasAttribute(
                                                 AttributeKey.stringKey("activity.name"),
                                                 "io.otel/Komponent"),
@@ -193,7 +193,7 @@ public class SlowRenderListenerTest {
                                 assertThat(span)
                                         .hasName("frozenRenders")
                                         .endsAt(span.getStartEpochNanos())
-                                        .hasAttribute(COUNT_KEY, 1L)
+                                        .hasAttribute(AttributeKey.longKey("count"), 1L)
                                         .hasAttribute(
                                                 AttributeKey.stringKey("activity.name"),
                                                 "io.otel/Komponent"));
