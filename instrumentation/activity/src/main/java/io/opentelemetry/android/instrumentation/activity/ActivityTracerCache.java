@@ -8,6 +8,7 @@ package io.opentelemetry.android.instrumentation.activity;
 import android.app.Activity;
 import androidx.annotation.VisibleForTesting;
 import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.context.Context;
 import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
@@ -32,13 +33,15 @@ public class ActivityTracerCache {
             Tracer tracer,
             VisibleScreenTracker visibleScreenTracker,
             AppStartupTimer startupTimer,
-            ScreenNameExtractor screenNameExtractor) {
+            ScreenNameExtractor screenNameExtractor,
+            Context rootContext) {
         this(
                 tracer,
                 visibleScreenTracker,
                 new AtomicReference<>(),
                 startupTimer,
-                screenNameExtractor);
+                screenNameExtractor,
+                rootContext);
     }
 
     @VisibleForTesting
@@ -47,13 +50,15 @@ public class ActivityTracerCache {
             VisibleScreenTracker visibleScreenTracker,
             AtomicReference<String> initialAppActivity,
             AppStartupTimer startupTimer,
-            ScreenNameExtractor screenNameExtractor) {
+            ScreenNameExtractor screenNameExtractor,
+            Context rootContext) {
         this(
                 activity ->
                         ActivityTracer.builder(activity)
                                 .setScreenName(screenNameExtractor.extract(activity))
                                 .setInitialAppActivity(initialAppActivity)
                                 .setTracer(tracer)
+                                .setRootContext(rootContext)
                                 .setAppStartupTimer(startupTimer)
                                 .setVisibleScreenTracker(visibleScreenTracker)
                                 .build());

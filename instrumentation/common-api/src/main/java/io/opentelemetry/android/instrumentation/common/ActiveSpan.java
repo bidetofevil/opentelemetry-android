@@ -6,10 +6,13 @@
 package io.opentelemetry.android.instrumentation.common;
 
 import androidx.annotation.Nullable;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
 import io.embrace.opentelemetry.kotlin.tracing.model.Span;
 import io.opentelemetry.android.common.RumConstants;
 import java.util.function.Supplier;
+import kotlin.OptIn;
 
+@OptIn(markerClass = ExperimentalApi.class)
 public class ActiveSpan {
 
     public static final ActiveSpan INVALID_ACTIVE_SPAN = new ActiveSpan(() -> null);

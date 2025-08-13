@@ -19,11 +19,14 @@ import android.view.FrameMetrics;
 import android.view.Window;
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.annotation.RequiresApi;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
+import io.embrace.opentelemetry.kotlin.tracing.model.Span;
+import io.embrace.opentelemetry.kotlin.tracing.model.SpanKind;
 import io.opentelemetry.android.common.RumConstants;
 import io.opentelemetry.android.internal.services.visiblescreen.activities.DefaultingActivityLifecycleCallbacks;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -33,6 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@OptIn(markerClass = ExperimentalApi.class)
 @RequiresApi(api = Build.VERSION_CODES.N)
 class SlowRenderListener implements DefaultingActivityLifecycleCallbacks {
 
@@ -214,12 +218,18 @@ class SlowRenderListener implements DefaultingActivityLifecycleCallbacks {
 
     private void makeSpan(String spanName, String activityName, int slowCount, Instant now) {
         // TODO: Use an event rather than a zero-duration span
+        long nowNanos = now.toEpochMilli() * 1000000;
         Span span =
-                tracer.spanBuilder(spanName)
-                        .setAttribute("count", slowCount)
-                        .setAttribute("activity.name", activityName)
-                        .setStartTimestamp(now)
-                        .startSpan();
-        span.end(now);
+                tracer.createSpan(
+                        spanName,
+                        null,
+                        SpanKind.INTERNAL,
+                        nowNanos,
+                        attributeContainer -> {
+                            attributeContainer.setLongAttribute("count", slowCount);
+                            attributeContainer.setStringAttribute("activity.name", activityName);
+                            return null;
+                        });
+        span.end(nowNanos);
     }
 }

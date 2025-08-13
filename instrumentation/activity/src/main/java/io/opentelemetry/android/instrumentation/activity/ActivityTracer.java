@@ -14,9 +14,10 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.context.Context;
+import io.embrace.opentelemetry.kotlin.context.OtelJavaContextExtKt;
 import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.embrace.opentelemetry.kotlin.tracing.model.Span;
-import io.embrace.opentelemetry.kotlin.tracing.model.SpanContext;
 import io.embrace.opentelemetry.kotlin.tracing.model.SpanKind;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
@@ -101,7 +102,11 @@ public class ActivityTracer {
     }
 
     private Span createSpanWithParent(String spanName, @Nullable Span parentSpan) {
-        final SpanContext parentContext = parentSpan == null ? null : parentSpan.getSpanContext();
+        final Context parentContext =
+                parentSpan == null
+                        ? null
+                        : OtelJavaContextExtKt.toOtelKotlinContext(
+                                io.opentelemetry.context.Context.current());
         final Span span =
                 tracer.createSpan(
                         spanName,
@@ -158,6 +163,8 @@ public class ActivityTracer {
         @Nullable private Tracer tracer = null;
         private ActiveSpan activeSpan = INVALID_ACTIVE_SPAN;
 
+        @Nullable private Context rootContext = null;
+
         public Builder(Activity activity) {
             this.activity = activity;
         }
@@ -201,12 +208,20 @@ public class ActivityTracer {
             return this;
         }
 
+        public Builder setRootContext(Context rootContext) {
+            this.rootContext = rootContext;
+            return this;
+        }
+
         public ActivityTracer build() {
             if (activeSpan == null) {
                 throw new IllegalStateException("activeSpan must be configured.");
             }
             if (tracer == null) {
                 throw new IllegalStateException("tracer must be configured.");
+            }
+            if (rootContext == null) {
+                throw new IllegalStateException("No root context found.");
             }
             if (appStartupTimer == INVALID_TIMER) {
                 throw new IllegalStateException("appStartupTimer must be configured.");
