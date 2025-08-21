@@ -16,11 +16,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import io.embrace.opentelemetry.kotlin.OpenTelemetry;
+import io.embrace.opentelemetry.kotlin.testing.junit5.OpenTelemetryExtension;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
@@ -31,19 +32,28 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 class ActivityCallbacksTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    @RegisterExtension final OpenTelemetryExtension otelTesting = new OpenTelemetryExtension();
 
     private ActivityTracerCache tracers;
     private VisibleScreenTracker visibleScreenTracker;
 
     @BeforeEach
     public void setup() {
-        Tracer tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        OpenTelemetry otel = otelTesting.getOpenTelemetry();
+        Tracer tracer =
+                otel.getTracerProvider()
+                        .getTracer("testTracer", null, null, attributeContainer -> null);
         AppStartupTimer startupTimer = new AppStartupTimer();
         visibleScreenTracker = Mockito.mock(VisibleScreenTracker.class);
         ScreenNameExtractor extractor = mock(ScreenNameExtractor.class);
         when(extractor.extract(isA(Activity.class))).thenReturn("Activity");
-        tracers = new ActivityTracerCache(tracer, visibleScreenTracker, startupTimer, extractor);
+        tracers =
+                new ActivityTracerCache(
+                        tracer,
+                        visibleScreenTracker,
+                        startupTimer,
+                        extractor,
+                        otel.getObjectCreator().getContext().root());
     }
 
     @Test
@@ -98,7 +108,7 @@ class ActivityCallbacksTest {
 
         Activity activity = mock(Activity.class);
         testHarness.runActivityCreationLifecycle(activity);
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -131,7 +141,6 @@ class ActivityCallbacksTest {
     private void startupAppAndClearSpans(ActivityCallbackTestHarness testHarness) {
         // make sure that the initial state has been set up & the application is started.
         testHarness.runAppStartupLifecycle(mock(Activity.class));
-        otelTesting.clearSpans();
     }
 
     @Test
@@ -146,7 +155,7 @@ class ActivityCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityRestartedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -185,7 +194,7 @@ class ActivityCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityResumedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -218,7 +227,7 @@ class ActivityCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityDestroyedFromStoppedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(1, spans.size());
 
         SpanData span = spans.get(0);
@@ -251,7 +260,7 @@ class ActivityCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityDestroyedFromPausedLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(2, spans.size());
 
         SpanData stoppedSpan = spans.get(0);
@@ -303,7 +312,7 @@ class ActivityCallbacksTest {
         Activity activity = mock(Activity.class);
         testHarness.runActivityStoppedFromRunningLifecycle(activity);
 
-        List<SpanData> spans = otelTesting.getSpans();
+        List<SpanData> spans = getExpectedSpans();
         assertEquals(2, spans.size());
 
         SpanData stoppedSpan = spans.get(0);
@@ -347,5 +356,11 @@ class ActivityCallbacksTest {
         Optional<EventData> event =
                 events.stream().filter(e -> e.getName().equals(eventName)).findAny();
         assertTrue(event.isPresent(), "Event with name " + eventName + " not found");
+    }
+
+    private List<SpanData> getExpectedSpans() {
+        List<SpanData> spans = otelTesting.getSpans();
+        spans.remove(0);
+        return spans;
     }
 }

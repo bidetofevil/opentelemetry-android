@@ -14,11 +14,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
+import androidx.annotation.Nullable;
+import io.embrace.opentelemetry.kotlin.OpenTelemetry;
+import io.embrace.opentelemetry.kotlin.context.Context;
+import io.embrace.opentelemetry.kotlin.testing.junit5.OpenTelemetryExtension;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ActiveSpan;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +30,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 public class ActivityTracerTest {
-    @RegisterExtension final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+    @RegisterExtension final OpenTelemetryExtension otelTesting = new OpenTelemetryExtension();
 
     private Tracer tracer;
     private final VisibleScreenTracker visibleScreenTracker =
@@ -35,9 +38,15 @@ public class ActivityTracerTest {
     private final AppStartupTimer appStartupTimer = new AppStartupTimer();
     private ActiveSpan activeSpan;
 
+    @Nullable private Context rootContext = null;
+
     @BeforeEach
     public void setup() {
-        tracer = otelTesting.getOpenTelemetry().getTracer("testTracer");
+        OpenTelemetry otel = otelTesting.getOpenTelemetry();
+        tracer =
+                otel.getTracerProvider()
+                        .getTracer("testTracer", null, null, attributeContainer -> null);
+        rootContext = otel.getObjectCreator().getContext().root();
         activeSpan = new ActiveSpan(visibleScreenTracker::getPreviouslyVisibleScreen);
     }
 
@@ -47,6 +56,7 @@ public class ActivityTracerTest {
                 ActivityTracer.builder(mock(Activity.class))
                         .setInitialAppActivity("FirstActivity")
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -63,6 +73,7 @@ public class ActivityTracerTest {
                 ActivityTracer.builder(mock(Activity.class))
                         .setInitialAppActivity("Activity")
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -79,6 +90,7 @@ public class ActivityTracerTest {
                 ActivityTracer.builder(mock(Activity.class))
                         .setInitialAppActivity("Activity")
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -95,6 +107,7 @@ public class ActivityTracerTest {
                 ActivityTracer.builder(mock(Activity.class))
                         .setInitialAppActivity("FirstActivity")
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -112,6 +125,7 @@ public class ActivityTracerTest {
                 ActivityTracer.builder(mock(Activity.class))
                         .setInitialAppActivity("Activity")
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -128,6 +142,7 @@ public class ActivityTracerTest {
         ActivityTracer trackableTracer =
                 ActivityTracer.builder(mock(Activity.class))
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -151,6 +166,7 @@ public class ActivityTracerTest {
         ActivityTracer trackableTracer =
                 ActivityTracer.builder(mock(Activity.class))
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -171,6 +187,7 @@ public class ActivityTracerTest {
         ActivityTracer trackableTracer =
                 ActivityTracer.builder(mock(Activity.class))
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -190,6 +207,7 @@ public class ActivityTracerTest {
         ActivityTracer trackableTracer =
                 ActivityTracer.builder(mock(Activity.class))
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)
                         .build();
@@ -207,6 +225,7 @@ public class ActivityTracerTest {
         ActivityTracer activityTracer =
                 ActivityTracer.builder(mock(Activity.class))
                         .setTracer(tracer)
+                        .setRootContext(rootContext)
                         .setScreenName("squarely")
                         .setAppStartupTimer(appStartupTimer)
                         .setActiveSpan(activeSpan)

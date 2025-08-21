@@ -36,7 +36,7 @@ public class io/opentelemetry/android/instrumentation/activity/ActivityTracer {
 }
 
 public class io/opentelemetry/android/instrumentation/activity/ActivityTracerCache {
-	public fun <init> (Lio/opentelemetry/api/trace/Tracer;Lio/opentelemetry/android/internal/services/visiblescreen/VisibleScreenTracker;Lio/opentelemetry/android/instrumentation/activity/startup/AppStartupTimer;Lio/opentelemetry/android/instrumentation/common/ScreenNameExtractor;)V
+	public fun <init> (Lio/embrace/opentelemetry/kotlin/tracing/Tracer;Lio/opentelemetry/android/internal/services/visiblescreen/VisibleScreenTracker;Lio/opentelemetry/android/instrumentation/activity/startup/AppStartupTimer;Lio/opentelemetry/android/instrumentation/common/ScreenNameExtractor;Lio/embrace/opentelemetry/kotlin/context/Context;)V
 	public fun addEvent (Landroid/app/Activity;Ljava/lang/String;)Lio/opentelemetry/android/instrumentation/activity/ActivityTracer;
 	public fun initiateRestartSpanIfNecessary (Landroid/app/Activity;)Lio/opentelemetry/android/instrumentation/activity/ActivityTracer;
 	public fun startActivityCreation (Landroid/app/Activity;)Lio/opentelemetry/android/instrumentation/activity/ActivityTracer;
@@ -64,9 +64,9 @@ public class io/opentelemetry/android/instrumentation/activity/startup/AppStartu
 	public fun createLifecycleCallback ()Landroid/app/Application$ActivityLifecycleCallbacks;
 	public fun detectBackgroundStart (Landroid/os/Handler;)V
 	public fun end ()V
-	public fun getStartupSpan ()Lio/opentelemetry/api/trace/Span;
+	public fun getStartupSpan ()Lio/embrace/opentelemetry/kotlin/tracing/model/Span;
 	public fun runCompletionCallback ()V
 	public fun setCompletionCallback (Ljava/lang/Runnable;)V
-	public fun start (Lio/opentelemetry/api/trace/Tracer;)Lio/opentelemetry/api/trace/Span;
+	public fun start (Lio/embrace/opentelemetry/kotlin/tracing/Tracer;)Lio/embrace/opentelemetry/kotlin/tracing/model/Span;
 }
 

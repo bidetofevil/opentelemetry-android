@@ -9,8 +9,11 @@ import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
 import io.opentelemetry.android.internal.services.visiblescreen.activities.DefaultingActivityLifecycleCallbacks;
 
+@OptIn(markerClass = ExperimentalApi.class)
 public class Pre29ActivityCallbacks implements DefaultingActivityLifecycleCallbacks {
     private final ActivityTracerCache tracers;
 

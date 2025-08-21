@@ -3,6 +3,7 @@ public abstract interface annotation class io/opentelemetry/android/instrumentat
 }
 
 public class io/opentelemetry/android/instrumentation/common/ActiveSpan {
+	public static final field INVALID_ACTIVE_SPAN Lio/opentelemetry/android/instrumentation/common/ActiveSpan;
 	public fun <init> (Ljava/util/function/Supplier;)V
 	public fun addEvent (Ljava/lang/String;)V
 	public fun addPreviousScreenAttribute (Ljava/lang/String;)V

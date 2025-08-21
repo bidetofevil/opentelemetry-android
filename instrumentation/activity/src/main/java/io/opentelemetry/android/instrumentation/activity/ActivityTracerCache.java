@@ -7,10 +7,12 @@ package io.opentelemetry.android.instrumentation.activity;
 
 import android.app.Activity;
 import androidx.annotation.VisibleForTesting;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.context.Context;
+import io.embrace.opentelemetry.kotlin.tracing.Tracer;
 import io.opentelemetry.android.instrumentation.activity.startup.AppStartupTimer;
 import io.opentelemetry.android.instrumentation.common.ScreenNameExtractor;
 import io.opentelemetry.android.internal.services.visiblescreen.VisibleScreenTracker;
-import io.opentelemetry.api.trace.Tracer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -20,6 +22,7 @@ import java.util.function.Function;
  * Encapsulates the fact that we have an ActivityTracer instance per Activity class, and provides
  * convenience methods for adding events and starting spans.
  */
+@ExperimentalApi
 public class ActivityTracerCache {
 
     private final Map<String, ActivityTracer> tracersByActivityClassName = new HashMap<>();
@@ -30,13 +33,15 @@ public class ActivityTracerCache {
             Tracer tracer,
             VisibleScreenTracker visibleScreenTracker,
             AppStartupTimer startupTimer,
-            ScreenNameExtractor screenNameExtractor) {
+            ScreenNameExtractor screenNameExtractor,
+            Context rootContext) {
         this(
                 tracer,
                 visibleScreenTracker,
                 new AtomicReference<>(),
                 startupTimer,
-                screenNameExtractor);
+                screenNameExtractor,
+                rootContext);
     }
 
     @VisibleForTesting
@@ -45,13 +50,15 @@ public class ActivityTracerCache {
             VisibleScreenTracker visibleScreenTracker,
             AtomicReference<String> initialAppActivity,
             AppStartupTimer startupTimer,
-            ScreenNameExtractor screenNameExtractor) {
+            ScreenNameExtractor screenNameExtractor,
+            Context rootContext) {
         this(
                 activity ->
                         ActivityTracer.builder(activity)
                                 .setScreenName(screenNameExtractor.extract(activity))
                                 .setInitialAppActivity(initialAppActivity)
                                 .setTracer(tracer)
+                                .setRootContext(rootContext)
                                 .setAppStartupTimer(startupTimer)
                                 .setVisibleScreenTracker(visibleScreenTracker)
                                 .build());

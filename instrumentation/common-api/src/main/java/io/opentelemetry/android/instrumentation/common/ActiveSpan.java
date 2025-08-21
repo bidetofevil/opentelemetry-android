@@ -6,16 +6,21 @@
 package io.opentelemetry.android.instrumentation.common;
 
 import androidx.annotation.Nullable;
+import io.embrace.opentelemetry.kotlin.ExperimentalApi;
+import io.embrace.opentelemetry.kotlin.tracing.model.Span;
 import io.opentelemetry.android.common.RumConstants;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Scope;
 import java.util.function.Supplier;
+import kotlin.OptIn;
 
+@OptIn(markerClass = ExperimentalApi.class)
 public class ActiveSpan {
+
+    public static final ActiveSpan INVALID_ACTIVE_SPAN = new ActiveSpan(() -> null);
+
     private final Supplier<String> lastVisibleScreen;
 
     @Nullable private Span span;
-    @Nullable private Scope scope;
+    @Nullable private Span currentSpan;
 
     public ActiveSpan(Supplier<String> lastVisibleScreen) {
         this.lastVisibleScreen = lastVisibleScreen;
@@ -33,13 +38,12 @@ public class ActiveSpan {
             return;
         }
         this.span = spanCreator.get();
-        scope = span.makeCurrent();
+        this.currentSpan = span;
     }
 
     public void endActiveSpan() {
-        if (scope != null) {
-            scope.close();
-            scope = null;
+        if (currentSpan != null) {
+            currentSpan = null;
         }
         if (this.span != null) {
             this.span.end();
@@ -49,7 +53,7 @@ public class ActiveSpan {
 
     public void addEvent(String eventName) {
         if (span != null) {
-            span.addEvent(eventName);
+            span.addEvent(eventName, null, attributeContainer -> null);
         }
     }
 
@@ -59,7 +63,8 @@ public class ActiveSpan {
         }
         String previouslyVisibleScreen = lastVisibleScreen.get();
         if (previouslyVisibleScreen != null && !screenName.equals(previouslyVisibleScreen)) {
-            span.setAttribute(RumConstants.LAST_SCREEN_NAME_KEY, previouslyVisibleScreen);
+            span.setStringAttribute(
+                    RumConstants.LAST_SCREEN_NAME_KEY.getKey(), previouslyVisibleScreen);
         }
     }
 }

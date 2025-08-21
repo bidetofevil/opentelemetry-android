@@ -16,6 +16,8 @@ android {
 dependencies {
     api(platform(libs.opentelemetry.platform.alpha))
     api(libs.opentelemetry.api)
+    api(libs.opentelemetry.kotlin)
+    api(libs.opentelemetry.kotlin.compat)
     api(project(":instrumentation:common-api"))
     api(project(":instrumentation:android-instrumentation"))
     implementation(project(":services"))
@@ -25,4 +27,5 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.opentelemetry.instrumentation.api)
     testImplementation(libs.robolectric)
+    testImplementation(libs.opentelemetry.kotlin.testing)
 }

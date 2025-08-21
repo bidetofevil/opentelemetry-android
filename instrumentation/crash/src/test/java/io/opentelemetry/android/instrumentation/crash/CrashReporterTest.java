@@ -5,6 +5,7 @@
 
 package io.opentelemetry.android.instrumentation.crash;
 
+import static io.opentelemetry.android.instrumentation.InstallationContextKt.createInstallationContext;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -64,10 +65,11 @@ public class CrashReporterTest {
                 (parentContext, o) -> Attributes.of(stringKey("test.key"), "abc");
         instrumentation.addAttributesExtractor(extractor);
         InstallationContext ctx =
-                new InstallationContext(
+                createInstallationContext(
                         RuntimeEnvironment.getApplication(),
                         openTelemetrySdk,
                         mock(SessionProvider.class));
+
         instrumentation.install(ctx);
 
         String exceptionMessage = "boooom!";
