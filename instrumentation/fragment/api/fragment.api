@@ -7,7 +7,7 @@ public final class io/opentelemetry/android/instrumentation/fragment/FragmentLif
 }
 
 public class io/opentelemetry/android/instrumentation/fragment/RumFragmentLifecycleCallbacks : androidx/fragment/app/FragmentManager$FragmentLifecycleCallbacks {
-	public fun <init> (Lio/opentelemetry/api/trace/Tracer;Ljava/util/function/Supplier;Lio/opentelemetry/android/instrumentation/common/ScreenNameExtractor;)V
+	public fun <init> (Lio/embrace/opentelemetry/kotlin/tracing/Tracer;Ljava/util/function/Supplier;Lio/opentelemetry/android/instrumentation/common/ScreenNameExtractor;)V
 	public fun onFragmentAttached (Landroidx/fragment/app/FragmentManager;Landroidx/fragment/app/Fragment;Landroid/content/Context;)V
 	public fun onFragmentCreated (Landroidx/fragment/app/FragmentManager;Landroidx/fragment/app/Fragment;Landroid/os/Bundle;)V
 	public fun onFragmentDestroyed (Landroidx/fragment/app/FragmentManager;Landroidx/fragment/app/Fragment;)V

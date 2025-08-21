@@ -19,7 +19,7 @@ androidx-navigation = "2.7.7"
 compose = "1.5.4"
 detekt = "1.23.8"
 binaryCompatValidator = "0.18.1"
-opentelemetryKotlin = "0.3.1"
+opentelemetryKotlin = "0.4.0"
 
 [libraries]
 opentelemetry-platform-alpha = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha", version.ref = "opentelemetry-instrumentation-alpha" }
