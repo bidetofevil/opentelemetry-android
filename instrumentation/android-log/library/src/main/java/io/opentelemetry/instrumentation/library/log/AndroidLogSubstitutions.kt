@@ -6,14 +6,15 @@
 package io.opentelemetry.instrumentation.library.log
 
 import android.util.Log
+import io.embrace.opentelemetry.kotlin.ExperimentalApi
+import io.embrace.opentelemetry.kotlin.logging.model.SeverityNumber
 import io.opentelemetry.api.common.AttributeKey
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.logs.Severity
-import io.opentelemetry.instrumentation.library.log.internal.LogRecordBuilderCreator.createLogRecordBuilder
+import io.opentelemetry.instrumentation.library.log.internal.LogRecordBuilderCreator
 import io.opentelemetry.instrumentation.library.log.internal.LogRecordBuilderCreator.getTypeName
 import io.opentelemetry.instrumentation.library.log.internal.LogRecordBuilderCreator.printStacktrace
 import io.opentelemetry.semconv.ExceptionAttributes
 
+@OptIn(ExperimentalApi::class)
 object AndroidLogSubstitutions {
     val tagKey: AttributeKey<String> = AttributeKey.stringKey("android.log.tag")
 
@@ -22,11 +23,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.TRACE)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.TRACE,
+        )
 
         return Log.v(tag, message)
     }
@@ -37,17 +38,12 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.TRACE)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.TRACE,
+            throwable = throwable,
+        )
 
         return Log.v(tag, message, throwable)
     }
@@ -57,11 +53,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.DEBUG)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.DEBUG,
+        )
 
         return Log.d(tag, message)
     }
@@ -72,17 +68,12 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.DEBUG)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.DEBUG,
+            throwable = throwable,
+        )
 
         return Log.d(tag, message, throwable)
     }
@@ -92,11 +83,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.INFO)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.INFO,
+        )
 
         return Log.i(tag, message)
     }
@@ -107,17 +98,12 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.INFO)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.INFO,
+            throwable = throwable,
+        )
 
         return Log.i(tag, message, throwable)
     }
@@ -127,12 +113,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.WARN)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
-
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.WARN,
+        )
         return Log.w(tag, message)
     }
 
@@ -141,16 +126,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.WARN)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).emit()
+        log(
+            tag = tag,
+            severityNumber = SeverityNumber.WARN,
+            throwable = throwable,
+        )
 
         return Log.w(tag, throwable)
     }
@@ -161,17 +141,12 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.WARN)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.WARN,
+            throwable = throwable,
+        )
 
         return Log.w(tag, message, throwable)
     }
@@ -181,12 +156,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.ERROR)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
-
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.ERROR,
+        )
         return Log.e(tag, message)
     }
 
@@ -196,17 +170,12 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.ERROR)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.ERROR,
+            throwable = throwable,
+        )
 
         return Log.e(tag, message, throwable)
     }
@@ -216,12 +185,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         message: String,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.UNDEFINED_SEVERITY_NUMBER)
-            .setAllAttributes(Attributes.builder().put(tagKey, tag).build())
-            .setBody(message)
-            .emit()
-
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.UNKNOWN,
+        )
         return Log.wtf(tag, message)
     }
 
@@ -230,16 +198,11 @@ object AndroidLogSubstitutions {
         tag: String?,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.UNDEFINED_SEVERITY_NUMBER)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).emit()
+        log(
+            tag = tag,
+            severityNumber = SeverityNumber.UNKNOWN,
+            throwable = throwable,
+        )
 
         return Log.wtf(tag, throwable)
     }
@@ -250,18 +213,31 @@ object AndroidLogSubstitutions {
         message: String,
         throwable: Throwable,
     ): Int {
-        createLogRecordBuilder()
-            .setSeverity(Severity.UNDEFINED_SEVERITY_NUMBER)
-            .setAllAttributes(
-                Attributes
-                    .builder()
-                    .put(tagKey, tag)
-                    .put(ExceptionAttributes.EXCEPTION_TYPE, getTypeName(throwable))
-                    .put(ExceptionAttributes.EXCEPTION_STACKTRACE, printStacktrace(throwable))
-                    .build(),
-            ).setBody(message)
-            .emit()
+        log(
+            tag = tag,
+            message = message,
+            severityNumber = SeverityNumber.UNKNOWN,
+            throwable = throwable,
+        )
 
         return Log.wtf(tag, message, throwable)
+    }
+
+    private fun log(
+        tag: String?,
+        message: String? = null,
+        severityNumber: SeverityNumber,
+        throwable: Throwable? = null,
+    ) {
+        LogRecordBuilderCreator.logger.log(
+            severityNumber = severityNumber,
+            body = message,
+        ) {
+            setStringAttribute(tagKey.key, tag.orEmpty())
+            if (throwable != null) {
+                setStringAttribute(ExceptionAttributes.EXCEPTION_TYPE.key, getTypeName(throwable))
+                setStringAttribute(ExceptionAttributes.EXCEPTION_STACKTRACE.key, printStacktrace(throwable))
+            }
+        }
     }
 }
