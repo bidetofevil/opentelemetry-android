@@ -38,6 +38,8 @@ import kotlin.time.toJavaDuration
 
 @OptIn(Incubating::class)
 object OpenTelemetryRumInitializer {
+    private const val COMPRESSION_METHOD = "gzip"
+
     /**
      * Opinionated [OpenTelemetryRum] initialization.
      *
@@ -49,6 +51,7 @@ object OpenTelemetryRumInitializer {
      * @param metricEndpointConnectivity Metric-specific endpoint configuration.
      * @param rumConfig Configuration used by [OpenTelemetryRumBuilder].
      * @param sessionConfig The session configuration, which includes inactivity timeout and maximum lifetime durations.
+     * @param enableGzip Enable gzip compression for all exporters. Defaults to false.
      * @param instrumentations Configurations for all the default instrumentations.
      */
     @Suppress("LongParameterList")
@@ -74,32 +77,46 @@ object OpenTelemetryRumInitializer {
             ),
         rumConfig: OtelRumConfig = OtelRumConfig(),
         sessionConfig: SessionConfig = SessionConfig.withDefaults(),
+        enableGzip: Boolean = false,
         instrumentations: (InstrumentationConfiguration.() -> Unit)? = null,
     ): OpenTelemetryRum {
         instrumentations?.let { configure ->
             InstrumentationConfiguration(rumConfig).configure()
         }
+
         return OpenTelemetryRum
             .builder(application, rumConfig)
             .setSessionProvider(createSessionProvider(application, sessionConfig))
             .addSpanExporterCustomizer {
                 OtlpHttpSpanExporter
                     .builder()
-                    .setEndpoint(spanEndpointConnectivity.getUrl())
-                    .setHeaders(spanEndpointConnectivity::getHeaders)
-                    .build()
+                    .apply {
+                        setEndpoint(spanEndpointConnectivity.getUrl())
+                        setHeaders(spanEndpointConnectivity::getHeaders)
+                        if (enableGzip) {
+                            setCompression(COMPRESSION_METHOD)
+                        }
+                    }.build()
             }.addLogRecordExporterCustomizer {
                 OtlpHttpLogRecordExporter
                     .builder()
-                    .setEndpoint(logEndpointConnectivity.getUrl())
-                    .setHeaders(logEndpointConnectivity::getHeaders)
-                    .build()
+                    .apply {
+                        setEndpoint(logEndpointConnectivity.getUrl())
+                        setHeaders(logEndpointConnectivity::getHeaders)
+                        if (enableGzip) {
+                            setCompression(COMPRESSION_METHOD)
+                        }
+                    }.build()
             }.addMetricExporterCustomizer {
                 OtlpHttpMetricExporter
                     .builder()
-                    .setEndpoint(metricEndpointConnectivity.getUrl())
-                    .setHeaders(metricEndpointConnectivity::getHeaders)
-                    .build()
+                    .apply {
+                        setEndpoint(metricEndpointConnectivity.getUrl())
+                        setHeaders(metricEndpointConnectivity::getHeaders)
+                        if (enableGzip) {
+                            setCompression(COMPRESSION_METHOD)
+                        }
+                    }.build()
             }.build()
     }
 
